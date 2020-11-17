@@ -1,6 +1,10 @@
 import streamlit as st
-#import psycopg2
+import psycopg2
 from sqlalchemy import create_engine
+import pandas as pd
+import requests
+import matplotlib.pyplot as plt
+
 
 config = {
 
