@@ -20,6 +20,7 @@ config = {
 
 st.title('EDI Satellite Measurement Inspection')
 
+
 def connect_to_db():
     host = config["DATABASE"]["HOST"]
     db_name = config["DATABASE"]["NAME"]
@@ -33,3 +34,27 @@ def connect_to_db():
 
 
 conn = connect_to_db()
+
+
+def get_all_reservoirs(conn):
+    sql_all_reservoirs_in_db = "select distinct magnr from water.classifiedsatellitepoints"
+    df = pd.read_sql(sql_all_reservoirs_in_db, conn)
+    return list(df['magnr'].values)
+
+
+def magnr_to_magname(magnr):
+    sql_magnr_to_magname = "select magnavn from metadata.nve_maginfo nm where magnr={}".format(
+        magnr)
+    df = pd.read_sql(sql_magnr_to_magname, conn)
+    magname = df['magnavn'].values[0]
+    return magname
+
+list_of_magnrs = get_all_reservoirs(conn)
+list_of_reservoirs_with_number_and_name = ['{}  ({})'.format(
+    magnr_to_magname(magnr), magnr) for magnr in list_of_magnrs]
+
+
+reservoir_selection = st.selectbox(
+    'Select Reservoir',
+    list_of_reservoirs_with_number_and_name,
+)
