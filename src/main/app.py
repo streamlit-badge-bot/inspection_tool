@@ -111,7 +111,7 @@ for index, row in df[df['magnr'].isin(reservoir_selection)].head(10).iterrows():
             st.write('success')
             st.experimental_rerun()
         if col2.button('Reject {}'.format(row['id'])):
-            sql_reject = 'update water.classifiedsatellitepoints_ set inspected = true and outlier = true where id = {}'.format(
+            sql_reject = 'update water.classifiedsatellitepoints_ set inspected = true, outlier = true where id = {}'.format(
                 row['id'])
             conn.execute(sql_reject)
             st.write('success')
