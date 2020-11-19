@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objs as go
+import re
 
 session_state = SessionState.get(checkboxed=False)
 
@@ -34,7 +35,7 @@ def connect_to_db():
 
 
 def get_measurements(conn):
-    sql_new_measurements = "select id, magnr, acqdate, waterlevel, inspected, quality ->> 'score' as quality from water.classifiedsatellitepoints_ c where inspected = false"
+    sql_new_measurements = "select id, magnr, acqdate, waterlevel, inspected, quality ->> 'score' as quality from water.classifiedsatellitepoints_ c"
     df = pd.read_sql(sql_new_measurements, conn)
     df['quality'] = pd.to_numeric(df['quality'])
     return df
@@ -71,20 +72,40 @@ def get_historical_stats(conn, magnr):
     ddf = ddf.reset_index()
     return ddf
 
+def magnr_to_magname(magnr):
+    sql_magnr_to_magname = "select magnavn from metadata.nve_maginfo nm where magnr={}".format(
+        magnr)
+    df = pd.read_sql(sql_magnr_to_magname, conn)
+    magname = df['magnavn'].values[0]
+    return magname
 
 conn = connect_to_db()
 
+df = get_measurements(conn)
+
+start_date = st.sidebar.date_input('start date', min_value=min(df['acqdate']), max_value=max(df['acqdate']), value=min(df['acqdate']))
+end_date = st.sidebar.date_input('end date', min_value=min(df['acqdate']), max_value=max(df['acqdate']), value=max(df['acqdate']))
+
+df = df[(df['acqdate'].dt.date > start_date) & (df['acqdate'].dt.date < end_date)]
+
 satellite_score = st.sidebar.slider(
     'score', min_value=0.0, max_value=1.0, step=0.05, value=0.6)
-df = get_measurements(conn)
 df = df[df['quality'] >= satellite_score]
 
 
 reseroirs = get_list_of_reservoirs(df)
-reservoir_selection = st.sidebar.multiselect(
-    'select reservoirs', reseroirs, default=reseroirs)
 
-for index, row in df[df['magnr'].isin(reservoir_selection)].head(10).iterrows():
+reservoirs_with_number_and_name = ['{}  ({})'.format(
+    magnr_to_magname(magnr), magnr) for magnr in reseroirs]
+
+reservoir_selection = st.sidebar.multiselect(
+    'select reservoirs', reservoirs_with_number_and_name, default=reservoirs_with_number_and_name)
+
+
+reservoir_selection_magnrs = ([re.findall('\((.*?)\)',i)[-1] for i in reservoir_selection])
+
+
+for index, row in df[df['magnr'].isin(reservoir_selection_magnrs)].head(10).iterrows():
     button_label = 'magnr: {} id:{} date:{} score:{:.2f}'.format(row['magnr'],
                                                                  row['id'], row['acqdate'].date(), row['quality'])
     with st.beta_expander(button_label):
