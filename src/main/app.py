@@ -72,6 +72,7 @@ def get_historical_stats(conn, magnr):
     ddf = ddf.reset_index()
     return ddf
 
+
 def magnr_to_magname(magnr):
     sql_magnr_to_magname = "select magnavn from metadata.nve_maginfo nm where magnr={}".format(
         magnr)
@@ -79,19 +80,23 @@ def magnr_to_magname(magnr):
     magname = df['magnavn'].values[0]
     return magname
 
+
 conn = connect_to_db()
 
 df = get_measurements(conn)
 
-start_date = st.sidebar.date_input('start date', min_value=min(df['acqdate']), max_value=max(df['acqdate']), value=min(df['acqdate']))
-end_date = st.sidebar.date_input('end date', min_value=min(df['acqdate']), max_value=max(df['acqdate']), value=max(df['acqdate']))
+start_date = st.sidebar.date_input('start date', min_value=min(
+    df['acqdate']), max_value=max(df['acqdate']), value=min(df['acqdate']))
+end_date = st.sidebar.date_input('end date', min_value=min(
+    df['acqdate']), max_value=max(df['acqdate']), value=max(df['acqdate']))
 
-df = df[(df['acqdate'].dt.date > start_date) & (df['acqdate'].dt.date < end_date)]
+df = df[(df['acqdate'].dt.date > start_date)
+        & (df['acqdate'].dt.date < end_date)]
 
 satellite_score = st.sidebar.slider(
     'score', min_value=0.0, max_value=1.0, step=0.05, value=0.6)
 df = df[df['quality'] >= satellite_score]
-
+df = df.round(2)
 
 reseroirs = get_list_of_reservoirs(df)
 
@@ -102,7 +107,8 @@ reservoir_selection = st.sidebar.multiselect(
     'select reservoirs', reservoirs_with_number_and_name, default=reservoirs_with_number_and_name)
 
 
-reservoir_selection_magnrs = ([re.findall('\((.*?)\)',i)[-1] for i in reservoir_selection])
+reservoir_selection_magnrs = (
+    [re.findall('\((.*?)\)', i)[-1] for i in reservoir_selection])
 
 
 for index, row in df[df['magnr'].isin(reservoir_selection_magnrs)].head(10).iterrows():
@@ -111,16 +117,17 @@ for index, row in df[df['magnr'].isin(reservoir_selection_magnrs)].head(10).iter
     with st.beta_expander(button_label):
         df = df[df['magnr'] == row['magnr']]
         fig = px.scatter(df[df['inspected'] == False],
-                         x='acqdate', y='waterlevel')
+                         x='acqdate', y='waterlevel', hover_data=['acqdate', 'quality'])
         fig.add_trace(go.Scatter(
-            x=df['acqdate'][df['inspected'] == True], y=df['waterlevel'][df['inspected'] == True]))
+            x=df['acqdate'][df['inspected'] == True], y=df['waterlevel'][df['inspected'] == True], name='inspected', hovertext=df['quality']))
         fig.add_annotation(x=row['acqdate'], y=row['waterlevel'],
-                           text='score {:.2f}'.format(
+                           text='<b>score {:.2f}'.format(
                                 row['quality']),
                            showarrow=True,
                            arrowhead=6,
                            arrowcolor='red',
-                           arrowsize=2)
+                           arrowsize=2,
+                           )
         fig.update_xaxes(rangeslider_visible=True)
         st.plotly_chart(fig, use_container_width=True)
         col1, col2 = st.beta_columns(2)
