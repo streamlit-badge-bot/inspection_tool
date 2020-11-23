@@ -8,19 +8,17 @@ import re
 
 session_state = SessionState.get(checkboxed=False)
 
-# config = {
+config = {
 
-#     "DATABASE": {
-#         "NAME": "xdev",
-#         "HOST": "35.205.238.199",
-#         "USER": "edidev",
-#         "PASSWORD": "edidev",
-#         "METADATA_DB": "postgresql+psycopg2://edidev:edidev@35.205.238.199/xdev",
-#         "xdev": "postgresql+psycopg2://edidev:edidev@35.205.238.199:5432/xdev"
-#     }
-# }
-
-config = ${{secrets.CONFIG}}
+    "DATABASE": {
+        "NAME": "xdev",
+        "HOST": "35.205.238.199",
+        "USER": "edidev",
+        "PASSWORD": "edidev",
+        "METADATA_DB": "postgresql+psycopg2://edidev:edidev@35.205.238.199/xdev",
+        "xdev": "postgresql+psycopg2://edidev:edidev@35.205.238.199:5432/xdev"
+    }
+}
 st.title('EDI Satellite Measurement Inspection')
 
 
