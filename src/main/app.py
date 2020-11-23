@@ -8,17 +8,19 @@ import re
 
 session_state = SessionState.get(checkboxed=False)
 
-config = {
+# config = {
 
-    "DATABASE": {
-        "NAME": "xdev",
-        "HOST": "35.205.238.199",
-        "USER": "edidev",
-        "PASSWORD": "edidev",
-        "METADATA_DB": "postgresql+psycopg2://edidev:edidev@35.205.238.199/xdev",
-        "xdev": "postgresql+psycopg2://edidev:edidev@35.205.238.199:5432/xdev"
-    }
-}
+#     "DATABASE": {
+#         "NAME": "xdev",
+#         "HOST": "35.205.238.199",
+#         "USER": "edidev",
+#         "PASSWORD": "edidev",
+#         "METADATA_DB": "postgresql+psycopg2://edidev:edidev@35.205.238.199/xdev",
+#         "xdev": "postgresql+psycopg2://edidev:edidev@35.205.238.199:5432/xdev"
+#     }
+# }
+
+config = ${{secrets.CONFIG}}
 st.title('EDI Satellite Measurement Inspection')
 
 
@@ -144,40 +146,3 @@ for index, row in df[df['magnr'].isin(reservoir_selection_magnrs)].head(10).iter
             conn.execute(sql_reject)
             st.write('success')
             st.experimental_rerun()
-
-
-# for reservoir in reseroirs[:2]:
-#     if st.button(str(reservoir)):
-#         # hdf = get_historical_stats(conn, reservoir)
-#         df = df[df['magnr'] == reservoir]
-#         # df['week'] = df['acqdate'].dt.isocalendar().week
-#         # df = pd.merge(hdf, df)
-#         # st.dataframe(df.tail(20))
-#         for index, row in df[:5].iterrows():
-#             button_label = 'id:{} date:{} score:{:.2f}'.format(
-#                 row['id'], row['acqdate'].date(), row['quality'])
-#             with st.beta_expander(button_label):
-#                 fig = px.scatter(df[df['inspected'] == False],
-#                                  x='acqdate', y='waterlevel')
-#                 fig.add_trace(go.Scatter(
-#                     x=df['acqdate'][df['inspected'] == True], y=df['waterlevel'][df['inspected'] == True]))
-#                 fig.add_annotation(x=row['acqdate'], y=row['waterlevel'],
-#                                    text='score {:.2f}'.format(
-#                                        row['quality']),
-#                                    showarrow=True,
-#                                    arrowhead=6,
-#                                    arrowcolor='red',
-#                                    arrowsize=2)
-#                 fig.update_xaxes(rangeslider_visible=True)
-#                 st.plotly_chart(fig, use_container_width=True)
-#                 col1, col2 = st.beta_columns(2)
-#                 st.write(session_state.checkboxed)
-
-#                 if col1.button('Approve {}'.format(row['id'])):
-#                     #sql_approve = 'update water.classifiedpoints_ c set c.inspected = true where c.id = {}'.format(row['id'])
-#                     #conn.execute(sql_approve)
-#                     st.write('qwe')
-#                 if col2.button('Reject {}'.format(row['id'])) or session_state.checkboxed:
-#                     st.write('asd')
-#                 if st.button('Submit {}'.format(row['id'])):
-#                     st.write('success')
